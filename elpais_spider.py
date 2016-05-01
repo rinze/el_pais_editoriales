@@ -3,7 +3,6 @@ from lxml import html
 import urllib2
 import json
 import time
-import gc
 
 INIT = "http://elpais.com/tag/c/aac32d0cdce5eeb99b187a446e57a9f7"
 
