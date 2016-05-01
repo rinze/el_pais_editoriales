@@ -1,8 +1,9 @@
 # coding=utf-8
 from lxml import html
-import requests
+import urllib2
 import json
 import time
+import gc
 
 INIT = "http://elpais.com/tag/c/aac32d0cdce5eeb99b187a446e57a9f7"
 
@@ -13,8 +14,9 @@ def process_editorial_list(url):
         - A list of URLs to individual editorial articles.
         - The URL to the next editorial list.
     """
-    content = requests.get(url).text
-    tree = html.fromstring(content)
+    content = urllib2.urlopen(url)
+    tree = html.parse(content)
+    content.close()
     next_edlist = get_next_edlist(tree)
     artlist = get_edarticles(tree)
     
@@ -45,8 +47,9 @@ def get_article_info(url):
     - tags (list of tags at the end of the article)
     - url
     """
-    content = requests.get(url).text
-    tree = html.fromstring(content)
+    content = urllib2.urlopen(url)
+    tree = html.parse(content)
+    content.close()
     title = tree.xpath('//h1[@id="articulo-titulo"]/text()')[0]
     date = tree.xpath('//time//a/text()')[0].strip()
     tags = tree.xpath('//li[@itemprop="keywords"]/a/text()')
@@ -62,16 +65,18 @@ if __name__ == "__main__":
     After each batch is processed, store the results as a json file
     for further processing.
     """
-    results = []
     next_edlist = INIT
+    n = 1
     while next_edlist and next_edlist.find('void') == -1:
+        partial = []
         artlist, next_edlist = process_editorial_list(next_edlist)
         for article in artlist:
-            time.sleep(1)
+            time.sleep(0.5)
             info = get_article_info(article)
             print(info)
-            results.append(info)
-        # Save partial 
-        with open("elpais_opeds.json", "w") as f:
-            json.dump(results, f)
+            partial.append(info)
+        # Save partial individually
+        with open("elpais_opeds_%03d.json" % n, "a") as f:
+            json.dump(partial, f)
+        n += 1
         
