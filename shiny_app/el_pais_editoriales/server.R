@@ -27,6 +27,9 @@ shinyServer(function(input, output) {
                                            selected = c("España", "Europa")))) %>%
         group_by(tags) %>%
         layer_paths(~year, ~count_n, stroke = ~tags, strokeWidth := 4) %>%
+        add_axis("x", title = "Año") %>%
+        add_axis("y", title = "Fracción de editoriales [%]") %>%
+        add_legend("stroke", title = "Temas") %>%
         bind_shiny("ggvis", "ggvis_ui")
   
 })
